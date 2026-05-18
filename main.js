@@ -1,3 +1,32 @@
+import { indianHackathons } from './data/hackathons.js';
+
+// Convert data format to match the app
+const convertedHackathons = indianHackathons.map(h => ({
+    id: h.id,
+    name: h.title,
+    description: h.description,
+    image: h.image,
+    startDate: h.startDate,
+    endDate: h.endDate,
+    deadline: h.deadline,
+    url: h.url,
+    platform: h.platform,
+    location: h.location,
+    prize: h.prize,
+    status: getStatus(h.startDate, h.endDate),
+    participants: Math.floor(Math.random() * 5000) + 100
+}));
+
+function getStatus(startDate, endDate) {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (now < start) return 'upcoming';
+    if (now >= start && now <= end) return 'live';
+    return 'past';
+}
+
 class HackathonFinder {
     constructor() {
         this.hackathons = [];
@@ -17,7 +46,7 @@ class HackathonFinder {
         this.hackathonsGrid = document.getElementById('hackathonsGrid');
         this.loadingEl = document.querySelector('.loading');
 
-        // Event listeners - FIXED: Using arrow functions
+        // Event listeners
         this.searchInput.addEventListener('input', debounce(() => this.applyFilters(), 300));
         this.statusFilter.addEventListener('change', () => this.applyFilters());
         this.platformFilter.addEventListener('change', () => this.applyFilters());
@@ -25,7 +54,7 @@ class HackathonFinder {
         // Filter chips
         document.querySelectorAll('.filter-chips button').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const chipBtn = e.target.closest('button'); // FIXED: Handle nested elements
+                const chipBtn = e.target.closest('button');
                 this.setActiveFilter(chipBtn);
                 this.updateDropdownFromChip(chipBtn.dataset.filter);
                 this.applyFilters();
@@ -39,151 +68,18 @@ class HackathonFinder {
         this.statusFilter.value = chipFilter;
     }
 
-    async loadHackathons() {
+    loadHackathons() {
         this.showLoading();
-
-        try {
-            const mockData = this.fetchMockHackathons();
-            this.hackathons = mockData;
+        
+        // Simulate loading delay for better UX
+        setTimeout(() => {
+            this.hackathons = [...convertedHackathons];
             this.filteredHackathons = [...this.hackathons];
-
+            
             this.hideLoading();
             this.applyFilters();
             this.updateFilterOptions();
-        } catch (error) {
-            console.error('Error loading hackathons:', error);
-            this.hackathons = [];
-            this.filteredHackathons = [];
-            this.hideLoading();
-            this.renderHackathons();
-        }
-    }
-
-    fetchMockHackathons() {
-        return [
-            {
-                id: '1',
-                name: "Flipkart GRiD 7.0",
-                description: "India's biggest E-commerce tech hackathon",
-                image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&h=250&fit=crop",
-                startDate: "2026-09-15",
-                endDate: "2026-09-18",
-                url: "https://unstop.com/flipkart-grid",
-                platform: "Flipkart",
-                location: "Online",
-                prize: "₹5Cr",
-                status: this.getStatus("2026-09-15", "2026-09-18"),
-                participants: 5000
-            },
-            {
-                id: '2',
-                name: "Smart India Hackathon 2026",
-                description: "Government of India Largest Hackathon",
-                image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop",
-                startDate: "2026-08-01",
-                endDate: "2026-09-30",
-                url: "https://sih.gov.in/",
-                platform: "Govt of India",
-                location: "Online",
-                prize: "₹2Cr",
-                status: this.getStatus("2026-08-01", "2026-09-30"),
-                participants: 50000
-            },
-            {
-                id: '3',
-                name: "ETHIndia 2026",
-                description: "India's Biggest Ethereum Hackathon",
-                image: "https://images.unsplash.com/photo-1620712943543-9fa2b7a193a6?w=400&h=250&fit=crop",
-                startDate: "2026-11-15",
-                endDate: "2026-11-17",
-                url: "https://ethglobal.com/events",
-                platform: "ETHGlobal",
-                location: "Hybrid",
-                prize: "$50K",
-                status: this.getStatus("2026-11-15", "2026-11-17"),
-                participants: 3000
-            },
-            {
-                id: '4',
-                name: "HackNIT 2026",
-                description: "NIT Trichy Annual Mega Event",
-                image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=250&fit=crop",
-                startDate: "2026-02-25",
-                endDate: "2026-02-26",
-                url: "https://unstop.com/hackathons",
-                platform: "Unstop",
-                location: "Offline",
-                prize: "₹1L",
-                status: this.getStatus("2026-02-25", "2026-02-26"),
-                participants: 1500
-            },
-            {
-                id: '5',
-                name: "Google Summer of Code 2026",
-                description: "Google Open Source Mentorship Program",
-                image: "https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=400&h=250&fit=crop",
-                startDate: "2026-05-01",
-                endDate: "2026-08-30",
-                url: "https://summerofcode.withgoogle.com/",
-                platform: "Google",
-                location: "Online",
-                prize: "$3000",
-                status: this.getStatus("2026-05-01", "2026-08-30"),
-                participants: 2000
-            },
-            {
-                id: '6',
-                name: "TCS CodeVita Season 11",
-                description: "TCS Annual Coding Championship",
-                image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870b3?w=400&h=250&fit=crop",
-                startDate: "2026-01-15",
-                endDate: "2026-02-28",
-                url: "https://codevita.tcs.com/",
-                platform: "TCS",
-                location: "Online",
-                prize: "₹30L",
-                status: this.getStatus("2026-01-15", "2026-02-28"),
-                participants: 10000
-            },
-            {
-                id: '7',
-                name: "Solana India Hackathon",
-                description: "Solana Web3 Build Challenge India",
-                image: "https://images.unsplash.com/photo-1620712943543-9fa2b7a193a6?w=400&h=250&fit=crop",
-                startDate: "2026-08-15",
-                endDate: "2026-08-30",
-                url: "https://solana.com/hackathon",
-                platform: "Solana",
-                location: "Online",
-                prize: "$100K",
-                status: this.getStatus("2026-08-15", "2026-08-30"),
-                participants: 2500
-            },
-            {
-                id: '8',
-                name: "Microsoft Codess 2026",
-                description: "Microsoft International Women's Hackathon",
-                image: "https://images.unsplash.com/photo-1633412802994-5fc058818e1c?w=400&h=250&fit=crop",
-                startDate: "2026-04-01",
-                endDate: "2026-04-15",
-                url: "https://codess.education/",
-                platform: "Microsoft",
-                location: "Online",
-                prize: "$5K",
-                status: this.getStatus("2026-04-01", "2026-04-15"),
-                participants: 1800
-            }
-        ];
-    }
-
-    getStatus(startDate, endDate) {
-        const now = new Date();
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-
-        if (now < start) return 'upcoming';
-        if (now >= start && now <= end) return 'live';
-        return 'past';
+        }, 500);
     }
 
     applyFilters() {
@@ -234,6 +130,12 @@ class HackathonFinder {
             year: 'numeric'
         });
 
+        const deadline = new Date(hackathon.deadline).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
         const locationClass = hackathon.location.toLowerCase().includes('online')
             ? ''
             : hackathon.location.toLowerCase().includes('hybrid')
@@ -269,19 +171,19 @@ class HackathonFinder {
                             <svg fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
                             </svg>
-                            ${startDate}
+                            Start: ${startDate}
+                        </div>
+                        <div class="meta-item deadline">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-5a1 1 0 10-2 0v3a1 1 0 001 1h2a1 1 0 100-2h-1V9z"/>
+                            </svg>
+                            Deadline: ${deadline}
                         </div>
                         <div class="meta-item prize">
                             <svg fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                             </svg>
                             ${hackathon.prize}
-                        </div>
-                        <div class="meta-item">
-                            <svg fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            ${hackathon.status.toUpperCase()}
                         </div>
                     </div>
                     <div class="card-footer">
